@@ -96,9 +96,9 @@ function createReadyDishes() {
 
 
 class Restaurant {
-  constructor(numberOfTablesAtRestaurant, listOfTables) {
+  constructor(numberOfTablesAtRestaurant) {
     this.numberOfTablesAtRestaurant = numberOfTablesAtRestaurant;
-    this.tableState = listOfTables;
+    this.tableState = [];
     this.allTables = [];
     this.menu = {
       readyMeals: [],
@@ -122,7 +122,43 @@ class Restaurant {
   
 }
 }
+}//FIX THIS SHIT!
+//FIX THIS SHIT!
+//FIX THIS SHIT!
+//FIX THIS SHIT!
+//FIX THIS SHIT!
+function returnTableWithOptimalNumberOfPeople(objectRestaurant, numberOfGuests){
+  const freeTables = objectRestaurant.tableState.filter(table => table.maxNumberOfPeople >= numberOfGuests && !table.active);
+
+  if (freeTables.length === 0) {
+    return null; 
+  }
+
+  return freeTables.reduce((min, table) => table.maxNumberOfPeople < min.maxNumberOfPeople ? min : table, freeTables[0]);
+}//FIX THIS SHIT!
+//FIX THIS SHIT!
+//FIX THIS SHIT!
+//FIX THIS SHIT!
+//FIX THIS SHIT!
+//FIX THIS SHIT!
+//FIX THIS SHIT!
+//FIX THIS SHIT!
+//FIX THIS SHIT!
+
+
+function printAllTablesForGivenAmountOfGuests(objectRestaurant, numberOfGuests){
+  console.clear();
+  const freeTables = objectRestaurant.tableState.filter(table => table.maxNumberOfPeople > numberOfGuests && table.active == false);
+  if(freeTables.length == 0)
+  console.log("Nazalost nema slobodnih stolova")
+  freeTables.forEach(table => {
+    console.log("Stol broj "+table.id + " -> max " + table.maxNumberOfPeople + " ljudi")
+  });
+
 }
+ 
+
+
 
 //Object Generation
 
@@ -131,14 +167,51 @@ restaurant.menu.readyMeals = createReadyDishes();
 restaurant.tableState = generateRandomTables(restaurant);
 
 
+//App Execution
+
+
+let ownerChoice;
+do{
+  do{
+     ownerChoice = prompt("Unesi naredbu: \nNovi stol -> \"1\"\nIsprazni stol -> \"2\"\nGotov radno vrijeme -> \"3\"").trim();
+  }while(ownerChoice != "1" && ownerChoice != "2" && ownerChoice != "3")
+    
+  switch(ownerChoice) {
+
+    case "1":
+      let numberOfGuests;
+      do{
+        try{
+          numberOfGuests = Number(prompt("Broj gostiju: "))
+        if(!Number.isInteger(numberOfGuests))
+          throw new Error("Morate unijeti broj");
+        }
+        catch(error){
+          console.error("Unesite ispravan broj, ", error);
+        }
+      }while(!Number.isInteger(numberOfGuests))
+
+      printAllTablesForGivenAmountOfGuests(restaurant, numberOfGuests);
+      let currentTable = returnTableWithOptimalNumberOfPeople(restaurant, numberOfGuests);
+      console.log("\n id"+currentTable.id+"\n"+currentTable.maxNumberOfPeople);
+
+      break;
+      case "2":
+
+
+      break;
+      case "3":
+      break;
+  
+  }
+  
+  
+}while(ownerChoice != "3");
  
 
 
 
 
 
-
-//table.orderFood(restaurant);
-console.log(restaurant.tableState)
 
 
