@@ -21,8 +21,17 @@ class Table {
     );
 
    if (orderChoice.toLowerCase().trim() != "custom") {
-      this.orderedDishes.readyMeals.push(...orderChoice.split(","));
-      this.orderedDishes.readyMeals = this.orderedDishes.readyMeals.map(x => x.trim().toLowerCase());
+      let listOfDishNamesToMake = orderChoice.split(",");
+      listOfDishNamesToMake = listOfDishNamesToMake.map(x => x.trim().toLowerCase());
+     
+     listOfDishNamesToMake.forEach(dishName => {
+          
+        let dish = objectRestaurant.menu.readyMeals.find(obj => obj.name.toLowerCase() == dishName);
+
+        if(dish)
+          this.orderedDishes.readyMeals.push(dish);
+
+      });
     }
     else{
       this.orderedDishes.customMeals.push(objectRestaurant.menu.addCustomDish());
@@ -36,7 +45,7 @@ class Table {
 function generateRandomTables(restaurant) {
   let tables = [];
   for(let i = 1; i <= restaurant.numberOfTablesAtRestaurant; i++){
-    tables.push(new Table(i, (Math.random()*10).toFixed()));
+    tables.push(new Table(i, Number((Math.random()*10).toFixed())));
 
   }
   return tables;
@@ -63,7 +72,7 @@ function createReadyDishes() {
   ));
 
   dishList.push(new Dish(
-    "Grilani losos",
+    "Losos",
     ["filet lososa", "limun", "maslinovo ulje", "začini"],
     "Svježi grilani filet lososa s citrusnim okusom",
     45.99
@@ -77,14 +86,14 @@ function createReadyDishes() {
   ));
 
   dishList.push(new Dish(
-    "Vegetarijanska Pizza",
+    "Pizza",
     ["rajčica", "paprika", "gljive", "masline", "sir"],
     "Pizza bogata povrćem za vegetarijance",
     28.99
   ));
 
   dishList.push(new Dish(
-    "Cokoladni sufle",
+    "Sufle",
     ["čokolada", "jaja", "šećer", "maslac"],
     "Topao sufle od čokolade s tekućim srednjim dijelom",
     15.99
@@ -118,15 +127,27 @@ class Restaurant {
           return new Dish(dishName, dishIngredients, "", (Math.random()*30+10).toFixed(2));
         
         }
+};
+}
+updateTableState(table){
+    for(let i = 0;i < this.tableState.length;i++){
+      if(this.tableState[i].id === table.id)
+      this.tableState[i] = table;
+      break;
+    }
+  }
 
-  
+addToAllTables(table){
+  for(let i = 0;i < this.tableState.length;i++){
+    if(this.tableState[i].id === table.id)
+    this.allTables.push(table);
+    break;
+  }
 }
+
 }
-}//FIX THIS SHIT!
-//FIX THIS SHIT!
-//FIX THIS SHIT!
-//FIX THIS SHIT!
-//FIX THIS SHIT!
+
+
 function returnTableWithOptimalNumberOfPeople(objectRestaurant, numberOfGuests){
   const freeTables = objectRestaurant.tableState.filter(table => table.maxNumberOfPeople >= numberOfGuests && !table.active);
 
@@ -134,21 +155,13 @@ function returnTableWithOptimalNumberOfPeople(objectRestaurant, numberOfGuests){
     return null; 
   }
 
-  return freeTables.reduce((min, table) => table.maxNumberOfPeople < min.maxNumberOfPeople ? min : table, freeTables[0]);
-}//FIX THIS SHIT!
-//FIX THIS SHIT!
-//FIX THIS SHIT!
-//FIX THIS SHIT!
-//FIX THIS SHIT!
-//FIX THIS SHIT!
-//FIX THIS SHIT!
-//FIX THIS SHIT!
-//FIX THIS SHIT!
+  return freeTables.reduce((min, table) => table.maxNumberOfPeople < min.maxNumberOfPeople ? table : min, freeTables[0]);
+}
 
 
 function printAllTablesForGivenAmountOfGuests(objectRestaurant, numberOfGuests){
   console.clear();
-  const freeTables = objectRestaurant.tableState.filter(table => table.maxNumberOfPeople > numberOfGuests && table.active == false);
+  const freeTables = objectRestaurant.tableState.filter(table => table.maxNumberOfPeople >= numberOfGuests && table.active == false);
   if(freeTables.length == 0)
   console.log("Nazalost nema slobodnih stolova")
   freeTables.forEach(table => {
@@ -156,7 +169,8 @@ function printAllTablesForGivenAmountOfGuests(objectRestaurant, numberOfGuests){
   });
 
 }
- 
+
+
 
 
 
@@ -173,7 +187,7 @@ restaurant.tableState = generateRandomTables(restaurant);
 let ownerChoice;
 do{
   do{
-     ownerChoice = prompt("Unesi naredbu: \nNovi stol -> \"1\"\nIsprazni stol -> \"2\"\nGotov radno vrijeme -> \"3\"").trim();
+     ownerChoice = prompt("Unesi naredbu: \nNovi stol -> \"1\"\nIsprazni stol -> \"2\"\nGotov radno vrijeme -> \"3\"");
   }while(ownerChoice != "1" && ownerChoice != "2" && ownerChoice != "3")
     
   switch(ownerChoice) {
@@ -191,9 +205,24 @@ do{
         }
       }while(!Number.isInteger(numberOfGuests))
 
+
       printAllTablesForGivenAmountOfGuests(restaurant, numberOfGuests);
-      let currentTable = returnTableWithOptimalNumberOfPeople(restaurant, numberOfGuests);
-      console.log("\n id"+currentTable.id+"\n"+currentTable.maxNumberOfPeople);
+      let currentTable;
+      try{
+      currentTable = returnTableWithOptimalNumberOfPeople(restaurant, numberOfGuests); //note: ovdje sam implementirao da sustav automatski sjedne osobu za stol koji ce oduzimati minimalno mjesta restoranu umjesto da sami biraju
+      currentTable.active = true;
+      restaurant.updateTableState(currentTable);
+      restaurant.addToAllTables(currentTable);
+    }
+    catch(error){
+      console.log("Pokusajte kasnije\n");
+      continue;
+    }
+
+    console.clear();
+      console.log("*sjeli ste za stol broj "+ currentTable.id);
+      currentTable.orderFood(restaurant);
+
 
       break;
       case "2":
