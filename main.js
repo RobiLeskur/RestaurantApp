@@ -159,12 +159,15 @@ class Restaurant {
      addCustomDish: function(){
       //ovdje mi je vise smisla imalo staviti random kao cijenu, *nije slucajno tako
         console.clear();
+          
           let dishName = prompt("Unesi ime jela: ");
           let dishIngredients = prompt("Unesi sastojke jela(odvoji ih zarezom): ").split(",");
+           dishIngredients = dishIngredients.map(dish => dish.toLowerCase().trim());
           let dishDescription = prompt("Unesi opis jela: ");
           let dishPrice = Number((Math.random()*30+10).toFixed(2));
 
           console.clear();
+          console.log("---------Naruceno jelo---------");
           console.log("Ime: "+ dishName);
           console.log("Sastojci jela: "+ dishIngredients);
           console.log("Opis jela: "+ dishIngredients);
@@ -214,10 +217,23 @@ updateTableState(table){
     this.numberOfTablesInADay();
     this.averagePrice();
     this.profitOfTheDay();
+    this.mostOrdered();
+    this.leastOrdered();
+    this.customDishes();
   }
 
   numberOfTablesInADay(){
     console.log("Broj stolova: " + this.allTables.length);
+    
+  }
+
+  customMealsAverage(){
+    let customMealsProfit = this.allTables.reduce((sum, table) => sum += table.orderedDishes.customMealsProfit ,0);
+    let numberOfCustomMeals = this.allTables.reduce((sum, table) => sum += table.orderedDishes.customMeals.length ,0)
+    if(numberOfCustomMeals != 0)
+    console.log("Prosijecna cijena po narudzbi narucenih jela: "+(customMealsProfit/numberOfCustomMeals).toFixed(2));
+    else
+  console.log("Prosijecna cijena po narudzbi narucenih jela: 0");
     
   }
 
@@ -229,26 +245,118 @@ updateTableState(table){
   averagePrice(){
    let readyMealsProfit = this.allTables.reduce((sum, table) => sum += table.orderedDishes.readyMealsProfit ,0);
     let numberOfReadyMeals = this.allTables.reduce((sum, table) => sum += table.orderedDishes.readyMeals.length ,0)
+    if(numberOfReadyMeals != 0)
     console.log("Prosijecna cijena gotovih jela: "+(readyMealsProfit/numberOfReadyMeals).toFixed(2));
+  else
+  console.log("Prosijecna cijena gotovih jela: 0");
 
     let customMealsProfit = this.allTables.reduce((sum, table) => sum += table.orderedDishes.customMealsProfit ,0);
     let numberOfCustomMeals = this.allTables.reduce((sum, table) => sum += table.orderedDishes.customMeals.length ,0)
+    if(numberOfCustomMeals != 0)
     console.log("Prosijecna cijena po narudzbi narucenih jela: "+(customMealsProfit/numberOfCustomMeals).toFixed(2));
-    console.log("Prosijecna cijena svih narucenih jela: "+((readyMealsProfit + customMealsProfit)/(numberOfCustomMeals + numberOfReadyMeals)).toFixed(2));
+    else
+  console.log("Prosijecna cijena po narudzbi narucenih jela: 0");
+    
+  if(numberOfCustomMeals != 0 && numberOfReadyMeals != 0)
+  console.log("Prosijecna cijena svih narucenih jela: "+((readyMealsProfit + customMealsProfit)/(numberOfCustomMeals + numberOfReadyMeals)).toFixed(2));
+    else
+  console.log("Prosijecna cijena svih narucenih jela: 0");
+    
 
   }
 
-  mostOrdered(){
+  
 
-    let timesOrdered = this.allOrderedDishesByName.length.fill(0);
-      for (let i = 0; i < this.allOrderedDishesByName.length; i++) {
-        for (let j = 0; j < this.allOrderedDishesByName.length; j++)
-        if(this.allOrderedDishesByName[i] == this.allOrderedDishesByName[j])
-          timesOrdered[i]++;
-        //fix!!
+  mostOrdered() {
+
+    let listOfMostOrderedDishes = mostRepeatsInAList(this.allOrderedDishesByName);
+    console.log("Najpopularnije jelo(jela): "+listOfMostOrderedDishes.join(", "));
+
+}
+
+leastOrdered() {
+  let listOfLeastOrderedDishes = leastRepeatsInAList(this.allOrderedDishesByName);
+  console.log("Najnepopularnije jelo: "+listOfLeastOrderedDishes.join(", "));
+  
+  
+ //ako nema narucenih jela lista ostaje prazna kako nebi bez veze ispisivala sva jela
+
+}
+
+customDishes(){
+  let numberOfTimesOrdered = this.allTables.reduce((sumOfCustomMeals, table) => sumOfCustomMeals + table.orderedDishes.customMeals.length ,0) 
+  console.log("Broj po narudžbi narucenih jela: " + numberOfTimesOrdered);
+  this.customMealsAverage();
+
+  let listOfAllIngredients = [];
+
+  this.allTables.forEach(table => {
+    table.orderedDishes.customMeals.forEach(dish => {
+      listOfAllIngredients.push(...dish.ingredients);
+    });
+    
+  })
+
+  let listOfMostOrderedIngredients = mostRepeatsInAList(listOfAllIngredients);
+  console.log("Najpopularniji sastojci: " + listOfMostOrderedIngredients.join(", "));
+
+  let listOfLeastOrderedIngredients = leastRepeatsInAList(listOfAllIngredients);
+  console.log("Najnepopularniji sastojci: " + listOfLeastOrderedIngredients.join(", "));
+
+}
+
+
+}
+
+function leastRepeatsInAList(list) {
+  let timesOrdered = new Array(list.length).fill(0);
+
+  for (let i = 0; i < list.length; i++) {
+    for (let j = 0; j < list.length; j++) {
+      if (list[i] == list[j]) {
+        timesOrdered[i]++;
       }
+    }
   }
 
+  let min = timesOrdered.reduce((min, numOfTimes) => numOfTimes < min ? numOfTimes : min, Number.MAX_SAFE_INTEGER);
+
+  let listOfLeastOrderedDishes = [];
+  for (let i = 0; i < list.length; i++) {
+    if (timesOrdered[i] == min) {
+      listOfLeastOrderedDishes.push(list[i]);
+  }
+}
+listOfLeastOrderedDishes = [...new Set(listOfLeastOrderedDishes)];
+return listOfLeastOrderedDishes;
+
+
+
+}
+
+function mostRepeatsInAList(list) {
+  let timesOrdered = new Array(list.length).fill(0);
+
+  for (let i = 0; i < list.length; i++) {
+    for (let j = 0; j < list.length; j++) {
+      if (list[i] == list[j]) {
+        timesOrdered[i]++;
+      }
+    }
+  }
+
+  let max = timesOrdered.reduce((max, numOfTimes) => numOfTimes > max ? numOfTimes : max, 0);
+
+  let listOfMostOrderedDishes = [];
+  for (let i = 0; i < list.length; i++) {
+    if (timesOrdered[i] == max) {
+      listOfMostOrderedDishes.push(list[i]);
+  }
+}
+
+
+listOfMostOrderedDishes = [...new Set(listOfMostOrderedDishes)];
+return listOfMostOrderedDishes;
 
 }
 
