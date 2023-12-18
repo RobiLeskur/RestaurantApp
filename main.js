@@ -43,6 +43,7 @@ class Table {
 
         if(dish){
           this.orderedDishes.readyMeals.push(dish);
+          objectRestaurant.allOrderedDishesByName.push(dish.name.toLowerCase());
           this.check += dish.price;
           this.orderedDishes.readyMealsProfit += dish.price;
           console.clear();
@@ -61,7 +62,7 @@ class Table {
       console.log("Jelo naruceno!");
     }
 
-    if(this.orderedDishes.readyMeals.length == 0)
+    if(this.orderedDishes.readyMeals.length == 0 && this.orderedDishes.customMeals == 0)
         {
           console.clear();
           console.log("Niste unijeli ni jedno jelo, pokusajte ponovo naruciti stol.");
@@ -140,6 +141,7 @@ function createReadyDishes() {
 
 class Restaurant {
   constructor(numberOfTablesAtRestaurant) {
+    this.allOrderedDishesByName = [];
     this.numberOfTablesAtRestaurant = numberOfTablesAtRestaurant;
     this.tableState = [];
     this.allTables = [];
@@ -170,6 +172,8 @@ class Restaurant {
 
           let newDish = new Dish(dishName, dishIngredients, dishDescription, dishPrice);
           newDish.numberOfTimesOrdered++;
+
+          restaurant.allOrderedDishesByName.push(newDish.name.toLowerCase());
           
           return newDish;
         
@@ -233,6 +237,18 @@ updateTableState(table){
     console.log("Prosijecna cijena svih narucenih jela: "+((readyMealsProfit + customMealsProfit)/(numberOfCustomMeals + numberOfReadyMeals)).toFixed(2));
 
   }
+
+  mostOrdered(){
+
+    let timesOrdered = this.allOrderedDishesByName.length.fill(0);
+      for (let i = 0; i < this.allOrderedDishesByName.length; i++) {
+        for (let j = 0; j < this.allOrderedDishesByName.length; j++)
+        if(this.allOrderedDishesByName[i] == this.allOrderedDishesByName[j])
+          timesOrdered[i]++;
+        //fix!!
+      }
+  }
+
 
 }
 
@@ -357,6 +373,7 @@ try{
       break;
       case "3":
         restaurant.report();
+        
       break;
   
   }
